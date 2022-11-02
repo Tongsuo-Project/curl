@@ -170,6 +170,12 @@ static void free_config_fields(struct OperationConfig *config)
   Curl_safefree(config->aws_sigv4);
   Curl_safefree(config->proto_str);
   Curl_safefree(config->proto_redir_str);
+#ifdef HAVE_NTLS
+  Curl_safefree(config->sign_cert);
+  Curl_safefree(config->sign_key);
+  Curl_safefree(config->enc_cert);
+  Curl_safefree(config->enc_key);
+#endif
 }
 
 void config_free(struct OperationConfig *config)

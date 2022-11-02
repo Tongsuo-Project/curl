@@ -403,6 +403,29 @@ if test "$OPENSSL_ENABLED" = "1"; then
   ])
 fi
 
+
+
+dnl **********************************************************************
+dnl Check for NTLS provided by Tongsuo
+dnl **********************************************************************
+
+if test "$OPENSSL_ENABLED" = "1"; then
+  AC_MSG_CHECKING([for NTLS support in Tongsuo])
+  AC_LINK_IFELSE([
+    AC_LANG_PROGRAM([[
+#include <openssl/ssl.h>
+    ]],[[
+      const SSL_METHOD *meth = NTLS_method();
+    ]])
+  ],[
+    AC_MSG_RESULT([yes])
+    AC_DEFINE(HAVE_NTLS, 1, [if you have the functions NTLS_method])
+    AC_SUBST(HAVE_NTLS, [1])
+  ],[
+    AC_MSG_RESULT([no])
+  ])
+fi
+
 dnl ---
 dnl Whether the OpenSSL configuration will be loaded automatically
 dnl ---

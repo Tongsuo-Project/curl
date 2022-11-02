@@ -1,0 +1,39 @@
+# Copyright (C) 2022
+#
+# SPDX-License-Identifier: curl
+
+name: build-with-tongsuo
+
+on: [workflow_dispatch, pull_request, push]
+
+jobs:
+  autotools:
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 60
+
+    steps:
+      - name: checkout tongsuo
+        uses: actions/checkout@v2
+        with:
+          repository: Tongsuo-Project/Tongsuo
+          path: Tongsuo
+      - name: install Tongsuo
+        working-directory: ./Tongsuo
+        run: |
+          ./config --banner=Configured --prefix=${GITHUB_WORKSPACE}/install enable-ntls
+          make -s -j4
+          make install
+
+      - uses: actions/checkout@v3
+        with:
+          path: curl
+
+      - name: build curl
+        working-directory: ./curl
+        run: |
+          autoreconf -fi
+          LDFLAGS=-Wl,-rpath=${GITHUB_WORKSPACE}/install/lib64/ ./configure --enable-warnings --enable-werror --with-openssl=${GITHUB_WORKSPACE}/install
+          make V=1
+          make V=1 examples
+          make V=1 -C tests
+          make V=1 test-ci

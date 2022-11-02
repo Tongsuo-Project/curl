@@ -1648,6 +1648,12 @@ static CURLcode single_transfer(struct GlobalConfig *global,
           }
           else
 #endif
+#ifdef HAVE_NTLS
+          my_setopt_str(curl, CURLOPT_SSLSIGNCERT, config->sign_cert);
+          my_setopt_str(curl, CURLOPT_SSLSIGNKEY, config->sign_key);
+          my_setopt_str(curl, CURLOPT_SSLENCCERT, config->enc_cert);
+          my_setopt_str(curl, CURLOPT_SSLENCKEY, config->enc_key);
+#endif
           my_setopt_str(curl, CURLOPT_SSLKEY, config->key);
           my_setopt_str(curl, CURLOPT_PROXY_SSLKEY, config->proxy_key);
           my_setopt_str(curl, CURLOPT_SSLKEYTYPE, config->key_type);
