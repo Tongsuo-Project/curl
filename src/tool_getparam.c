@@ -326,8 +326,13 @@ static const struct LongShort aliases[]= {
   {"R",  "remote-time",              ARG_BOOL},
   {"s",  "silent",                   ARG_BOOL},
   {"S",  "show-error",               ARG_BOOL},
+#ifdef HAVE_NTLS
+  {"Sc", "sign-cert",                ARG_FILENAME},
+  {"Sk", "sign-key",                 ARG_FILENAME},
+#endif
   {"t",  "telnet-option",            ARG_STRING},
   {"T",  "upload-file",              ARG_FILENAME},
+  {"Tp", "tlcp",                     ARG_BOOL},
   {"u",  "user",                     ARG_STRING},
   {"U",  "proxy-user",               ARG_STRING},
   {"v",  "verbose",                  ARG_BOOL},
@@ -337,6 +342,10 @@ static const struct LongShort aliases[]= {
   {"xa", "preproxy",                 ARG_STRING},
   {"X",  "request",                  ARG_STRING},
   {"Y",  "speed-limit",              ARG_STRING},
+#ifdef HAVE_NTLS
+  {"Yc", "enc-cert",                ARG_FILENAME},
+  {"Yk", "enc-key",                 ARG_FILENAME},
+#endif
   {"y",  "speed-time",               ARG_STRING},
   {"z",  "time-cond",                ARG_STRING},
   {"Z",  "parallel",                 ARG_BOOL},
@@ -2247,8 +2256,19 @@ ParameterError getparameter(const char *flag, /* f or -long-flag */
         global->showerror = (!toggle)?TRUE:FALSE; /* toggle off */
       break;
     case 'S':
-      /* show errors */
-      global->showerror = toggle?1:0; /* toggle on if used with -s */
+      switch(subletter) {
+        case '\0': /* show errors */
+          global->showerror = toggle?1:0; /* toggle on if used with -s */
+          break;
+#ifdef HAVE_NTLS
+        case 'c': /* sign certificate */
+          GetStr(&config->sign_cert, nextarg);
+          break;
+        case 'k': /* sign key */
+          GetStr(&config->sign_key, nextarg);
+          break;
+#endif
+      }
       break;
     case 't':
       /* Telnet options */
@@ -2257,39 +2277,47 @@ ParameterError getparameter(const char *flag, /* f or -long-flag */
         return err;
       break;
     case 'T':
-      /* we are uploading */
-    {
-      struct getout *url;
-      if(!config->url_ul)
-        config->url_ul = config->url_list;
-      if(config->url_ul) {
-        /* there's a node here, if it already is filled-in continue to find
-           an "empty" node */
-        while(config->url_ul && (config->url_ul->flags & GETOUT_UPLOAD))
-          config->url_ul = config->url_ul->next;
+      switch(subletter) {
+      case '\0': /* we are uploading */
+      {
+        struct getout *url;
+        if(!config->url_ul)
+          config->url_ul = config->url_list;
+        if(config->url_ul) {
+          /* there's a node here, if it already is filled-in continue to find
+            an "empty" node */
+          while(config->url_ul && (config->url_ul->flags & GETOUT_UPLOAD))
+            config->url_ul = config->url_ul->next;
+        }
+
+        /* now there might or might not be an available node to fill in! */
+
+        if(config->url_ul)
+          /* existing node */
+          url = config->url_ul;
+        else
+          /* there was no free node, create one! */
+          config->url_ul = url = new_getout(config);
+
+        if(!url)
+          return PARAM_NO_MEM;
+
+        url->flags |= GETOUT_UPLOAD; /* mark -T used */
+        if(!*nextarg)
+          url->flags |= GETOUT_NOUPLOAD;
+        else {
+          /* "-" equals stdin, but keep the string around for now */
+          GetStr(&url->infile, nextarg);
+        }
       }
-
-      /* now there might or might not be an available node to fill in! */
-
-      if(config->url_ul)
-        /* existing node */
-        url = config->url_ul;
-      else
-        /* there was no free node, create one! */
-        config->url_ul = url = new_getout(config);
-
-      if(!url)
-        return PARAM_NO_MEM;
-
-      url->flags |= GETOUT_UPLOAD; /* mark -T used */
-      if(!*nextarg)
-        url->flags |= GETOUT_NOUPLOAD;
-      else {
-        /* "-" equals stdin, but keep the string around for now */
-        GetStr(&url->infile, nextarg);
+        break;
+#ifdef HAVE_NTLS
+      case 'p': /* TLCP */
+        config->ssl_version = CURL_SSLVERSION_NTLSv1_1;
+        break;
+#endif
       }
-    }
-    break;
+      break;
     case 'u':
       /* user:password  */
       GetStr(&config->userpwd, nextarg);
@@ -2374,12 +2402,23 @@ ParameterError getparameter(const char *flag, /* f or -long-flag */
         config->low_speed_limit = 1;
       break;
     case 'Y':
-      /* low speed limit */
-      err = str2unum(&config->low_speed_limit, nextarg);
-      if(err)
-        return err;
-      if(!config->low_speed_time)
-        config->low_speed_time = 30;
+      switch(subletter) {
+        case '\0': /* low speed limit */
+          err = str2unum(&config->low_speed_limit, nextarg);
+          if(err)
+            return err;
+          if(!config->low_speed_time)
+            config->low_speed_time = 30;
+          break;
+#ifdef HAVE_NTLS
+        case 'c': /* enc certificate */
+          GetStr(&config->enc_cert, nextarg);
+          break;
+        case 'k': /* enc key */
+          GetStr(&config->enc_key, nextarg);
+          break;
+#endif
+      }
       break;
     case 'Z':
       switch(subletter) {

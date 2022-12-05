@@ -299,6 +299,12 @@ struct ssl_config_data {
   struct curl_blob *key_blob;
   char *key_type; /* format for private key (default: PEM) */
   char *key_passwd; /* plain text private key password */
+#ifdef HAVE_NTLS
+  char *sign_cert;
+  char *sign_key;
+  char *enc_cert;
+  char *enc_key;
+#endif
   BIT(certinfo);     /* gather lots of certificate info */
   BIT(falsestart);
   BIT(enable_beast); /* allow this flaw for interoperability's sake */
@@ -1621,6 +1627,10 @@ enum dupstring {
   STRING_DNS_LOCAL_IP6,
   STRING_SSL_EC_CURVES,
 
+  STRING_SIGN_CERT,
+  STRING_SIGN_KEY,
+  STRING_ENC_CERT,
+  STRING_ENC_KEY,
   /* -- end of null-terminated strings -- */
 
   STRING_LASTZEROTERMINATED,

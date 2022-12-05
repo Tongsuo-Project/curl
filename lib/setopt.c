@@ -3107,6 +3107,36 @@ CURLcode Curl_vsetopt(struct Curl_easy *data, CURLoption option, va_list param)
     break;
   }
 #endif
+#ifdef HAVE_NTLS
+  case CURLOPT_SSLSIGNCERT:
+    /*
+     * String that holds file name of the SSL sign certificate to use
+     */
+    result = Curl_setstropt(&data->set.str[STRING_SIGN_CERT],
+                            va_arg(param, char *));
+    break;
+  case CURLOPT_SSLSIGNKEY:
+    /*
+     * String that holds file name of the SSL sign key to use
+     */
+    result = Curl_setstropt(&data->set.str[STRING_SIGN_KEY],
+                            va_arg(param, char *));
+    break;
+  case CURLOPT_SSLENCCERT:
+    /*
+     * String that holds file name of the SSL enc certificate to use
+     */
+    result = Curl_setstropt(&data->set.str[STRING_ENC_CERT],
+                            va_arg(param, char *));
+    break;
+  case CURLOPT_SSLENCKEY:
+    /*
+     * String that holds file name of the SSL enc key to use
+     */
+    result = Curl_setstropt(&data->set.str[STRING_ENC_KEY],
+                            va_arg(param, char *));
+    break;
+#endif
   default:
     /* unknown tag and its companion, just ignore: */
     result = CURLE_UNKNOWN_OPTION;

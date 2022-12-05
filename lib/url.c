@@ -3868,6 +3868,12 @@ static CURLcode create_conn(struct Curl_easy *data,
   data->set.ssl.key_type = data->set.str[STRING_KEY_TYPE];
   data->set.ssl.key_passwd = data->set.str[STRING_KEY_PASSWD];
   data->set.ssl.primary.clientcert = data->set.str[STRING_CERT];
+#ifdef HAVE_NTLS
+  data->set.ssl.sign_cert = data->set.str[STRING_SIGN_CERT];
+  data->set.ssl.sign_key = data->set.str[STRING_SIGN_KEY];
+  data->set.ssl.enc_cert = data->set.str[STRING_ENC_CERT];
+  data->set.ssl.enc_key = data->set.str[STRING_ENC_KEY];
+#endif
 #ifdef USE_TLS_SRP
   data->set.ssl.primary.username = data->set.str[STRING_TLSAUTH_USERNAME];
   data->set.ssl.primary.password = data->set.str[STRING_TLSAUTH_PASSWORD];

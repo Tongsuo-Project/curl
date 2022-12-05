@@ -1123,3 +1123,8 @@ LIBCURL_VERSION_MAJOR           7.11.0
 LIBCURL_VERSION_MINOR           7.11.0
 LIBCURL_VERSION_NUM             7.11.0
 LIBCURL_VERSION_PATCH           7.11.0
+CURLOPT_SSLENCCERT              1             -           1
+CURLOPT_SSLENCKEY               1             -           1
+CURLOPT_SSLSIGNCERT             1             -           1
+CURLOPT_SSLSIGNKEY              1             -           1
+CURL_SSLVERSION_NTLSv1_1        1             -           1

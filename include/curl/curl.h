@@ -2157,6 +2157,18 @@ typedef enum {
   /* websockets options */
   CURLOPT(CURLOPT_WS_OPTIONS, CURLOPTTYPE_LONG, 320),
 
+  /* name of the file keeping your SSL sign certificate */
+  CURLOPT(CURLOPT_SSLSIGNCERT, CURLOPTTYPE_STRINGPOINT, 321),
+
+  /* name of the file keeping your SSL sign key */
+  CURLOPT(CURLOPT_SSLSIGNKEY, CURLOPTTYPE_STRINGPOINT, 322),
+
+  /* name of the file keeping your SSL enc certificate */
+  CURLOPT(CURLOPT_SSLENCCERT, CURLOPTTYPE_STRINGPOINT, 323),
+
+  /* name of the file keeping your SSL enc key */
+  CURLOPT(CURLOPT_SSLENCKEY, CURLOPTTYPE_STRINGPOINT, 324),
+
   CURLOPT_LASTENTRY /* the last unused */
 } CURLoption;
 
@@ -2263,6 +2275,7 @@ enum {
   CURL_SSLVERSION_TLSv1_1,
   CURL_SSLVERSION_TLSv1_2,
   CURL_SSLVERSION_TLSv1_3,
+  CURL_SSLVERSION_NTLSv1_1,
 
   CURL_SSLVERSION_LAST /* never use, keep last */
 };

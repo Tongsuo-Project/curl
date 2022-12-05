@@ -2944,6 +2944,12 @@ static CURLcode ossl_connect_step1(struct Curl_easy *data,
   /* check to see if we've been told to use an explicit SSL/TLS version */
 
   switch(ssl_version) {
+#ifdef HAVE_NTLS
+  case CURL_SSLVERSION_NTLSv1_1:
+    req_method = NTLS_client_method();
+    use_sni(TRUE);
+    break;
+#endif
   case CURL_SSLVERSION_DEFAULT:
   case CURL_SSLVERSION_TLSv1:
   case CURL_SSLVERSION_TLSv1_0:
@@ -2977,6 +2983,11 @@ static CURLcode ossl_connect_step1(struct Curl_easy *data,
           ossl_strerror(ERR_peek_error(), error_buffer, sizeof(error_buffer)));
     return CURLE_OUT_OF_MEMORY;
   }
+
+#ifdef HAVE_NTLS
+  if(ssl_version == CURL_SSLVERSION_NTLSv1_1)
+    SSL_CTX_enable_ntls(backend->ctx);
+#endif
 
 #ifdef SSL_MODE_RELEASE_BUFFERS
   SSL_CTX_set_mode(backend->ctx, SSL_MODE_RELEASE_BUFFERS);
@@ -3054,6 +3065,10 @@ static CURLcode ossl_connect_step1(struct Curl_easy *data,
     case CURL_SSLVERSION_SSLv3:
       return CURLE_NOT_BUILT_IN;
 
+#ifdef HAVE_NTLS
+    case CURL_SSLVERSION_NTLSv1_1:
+      break;
+#endif
     /* "--tlsv<x.y>" options mean TLS >= version <x.y> */
     case CURL_SSLVERSION_DEFAULT:
     case CURL_SSLVERSION_TLSv1: /* TLS >= version 1.0 */
@@ -3128,6 +3143,50 @@ static CURLcode ossl_connect_step1(struct Curl_easy *data,
       /* failf() is already done in cert_stuff() */
       return result;
   }
+#ifdef HAVE_NTLS
+  if(ssl_version == CURL_SSLVERSION_NTLSv1_1) {
+    char *sign_cert = SSL_SET_OPTION(sign_cert);
+    char *sign_key = SSL_SET_OPTION(sign_key);
+    char *enc_cert = SSL_SET_OPTION(enc_cert);
+    char *enc_key = SSL_SET_OPTION(enc_key);
+
+    if(sign_cert
+       && !SSL_CTX_use_sign_certificate_file(backend->ctx, sign_cert,
+                                             SSL_FILETYPE_PEM)) {
+      failf(data, "SSL: failed settting sign certificate file: %s",
+            ossl_strerror(ERR_get_error(), error_buffer,
+                          sizeof(error_buffer)));
+      return CURLE_SSL_CERTPROBLEM;
+    }
+
+    if(sign_key
+       && !SSL_CTX_use_sign_PrivateKey_file(backend->ctx, sign_key,
+                                            SSL_FILETYPE_PEM)) {
+      failf(data, "SSL: failed settting sign key file: %s",
+            ossl_strerror(ERR_get_error(), error_buffer,
+                          sizeof(error_buffer)));
+      return CURLE_SSL_CERTPROBLEM;
+    }
+
+    if(enc_cert
+       && !SSL_CTX_use_enc_certificate_file(backend->ctx, enc_cert,
+                                             SSL_FILETYPE_PEM)) {
+      failf(data, "SSL: failed settting enc certificate file: %s",
+            ossl_strerror(ERR_get_error(), error_buffer,
+                          sizeof(error_buffer)));
+      return CURLE_SSL_CERTPROBLEM;
+    }
+
+    if(enc_key
+       && !SSL_CTX_use_enc_PrivateKey_file(backend->ctx, enc_key,
+                                           SSL_FILETYPE_PEM)) {
+      failf(data, "SSL: failed settting enc key file: %s",
+            ossl_strerror(ERR_get_error(), error_buffer,
+                          sizeof(error_buffer)));
+      return CURLE_SSL_CERTPROBLEM;
+    }
+  }
+#endif
 
   ciphers = SSL_CONN_CONFIG(cipher_list);
   if(!ciphers)

@@ -169,6 +169,13 @@ my %opts = (
     # for tests and debug only, can remain hidden
     '--test-event' => 6,
     '--wdebug' => 6,
+
+    # ignore
+    '--enc-key' => 7,
+    '--sign-cert' => 7,
+    '--enc-cert' => 7,
+    '--sign-key' => 7,
+    '--tlcp' => 7,
     );
 
 

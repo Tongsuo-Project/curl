@@ -294,6 +294,12 @@ struct OperationConfig {
   struct State state;             /* for create_transfer() */
   bool rm_partial;                /* on error, remove partially written output
                                      files */
+#ifdef HAVE_NTLS
+  char *sign_cert;
+  char *sign_key;
+  char *enc_cert;
+  char *enc_key;
+#endif
 };
 
 struct GlobalConfig {
