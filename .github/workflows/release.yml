@@ -34,14 +34,14 @@ jobs:
     needs: [new_release]
     strategy:
       matrix:
-        builder: [macos-latest, ubuntu-latest]
+        builder: [macos-latest, ubuntu-20.04]
     name: "build-${{ matrix.builder }}"
     steps:
       - run: brew install libtool autoconf automake pkg-config
         if: ${{ matrix.builder == 'macos-latest' }}
       - name: build Tongsuo
         run: |
-          VERSION=8.3.2
+          VERSION=8.3.3
           wget "https://github.com/Tongsuo-Project/Tongsuo/archive/refs/tags/${VERSION}.tar.gz"
           tar zxf "${VERSION}.tar.gz"
           pushd "Tongsuo-${VERSION}"
@@ -85,7 +85,7 @@ jobs:
       - name: Export env
         shell: bash
         run: |
-          VERSION=8.3.2
+          VERSION=8.3.3
           echo "TONGSUO_VERSION=${VERSION}" >> $GITHUB_ENV
           echo "TONGSUO_HOME=${GITHUB_WORKSPACE}\tongsuo${VERSION}" >> $GITHUB_ENV
       - name: Download Tongsuo source
