@@ -30,28 +30,31 @@
 
 int main(int argc, char **argv)
 {
-    CURL *curl;
-    CURLcode res;
+  CURL *curl;
+  CURLcode res;
 
-    curl = curl_easy_init();
-    if (curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, "https://127.0.0.1:443");
-        curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_NTLSv1_1);
-        curl_easy_setopt(curl, CURLOPT_SSL_CIPHER_LIST, "ECC-SM2-SM4-CBC-SM3");
+  curl = curl_easy_init();
+  if(curl) {
+    curl_easy_setopt(curl, CURLOPT_URL, "https://127.0.0.1:443");
+    curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_NTLSv1_1);
+    curl_easy_setopt(curl, CURLOPT_SSL_CIPHER_LIST, "ECC-SM2-SM4-CBC-SM3");
 
-        /* optional */
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
+    /* optional */
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0);
 
-        res = curl_easy_perform(curl);
+    res = curl_easy_perform(curl);
 
-        if(res != CURLE_OK)
-            fprintf(stderr, "curl_easy_perform() failed: %s\n",
-                    curl_easy_strerror(res));
+    if(res != CURLE_OK)
+      fprintf(stderr, "curl_easy_perform() failed: %s\n",
+              curl_easy_strerror(res));
 
-        curl_easy_cleanup(curl);
-    }
+    curl_easy_cleanup(curl);
+  }
 
-    return 0;
+  return 0;
 }
-// gcc https-tlcp.c -o https-tlcp -I/usr/local/curl/include -lcurl -L/usr/local/curl/lib -Wl,-rpath=/usr/local/curl/lib
+/*
+gcc https-tlcp.c -o https-tlcp -I/usr/local/curl/include -lcurl \
+-L/usr/local/curl/lib -Wl,-rpath=/usr/local/curl/lib
+*/
