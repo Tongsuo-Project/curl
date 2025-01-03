@@ -33,6 +33,7 @@ my @tabs = (
     "\\.(bat|sln|vc)\$",
     "^tests/certs/.+\\.der\$",
     "^tests/data/test",
+    "tongsuo.patch",
 );
 
 my @mixed_eol = (
@@ -49,6 +50,7 @@ my @need_crlf = (
 my @space_at_eol = (
     "^tests/.+\\.(cacert|crt|pem)\$",
     "^tests/data/test",
+    "tongsuo.patch",
 );
 
 my @eol_at_eof = (
