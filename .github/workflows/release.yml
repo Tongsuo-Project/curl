@@ -4,7 +4,7 @@
 
 name: release
 
-on:
+'on':
   workflow_dispatch:
     tags:
       - '*'
@@ -34,20 +34,20 @@ jobs:
     needs: [new_release]
     strategy:
       matrix:
-        builder: [macos-latest, ubuntu-20.04]
+        builder: [ubuntu-20.04, macos-latest, macos-13]
     name: "build-${{ matrix.builder }}"
     steps:
-      - run: |
-          brew install libtool autoconf automake pkg-config
-          mv /usr/local/include/openssl /usr/local/include/openssl.bak
-        if: ${{ matrix.builder == 'macos-latest' }}
+      - run: brew install libtool autoconf automake pkg-config
+        if: ${{ matrix.builder == 'macos-latest' || matrix.builder == 'macos-13' }}
+      - run: mv /usr/local/include/openssl /usr/local/include/openssl.bak
+        if: ${{ matrix.builder == 'macos-13' }}
       - name: build Tongsuo
         run: |
-          VERSION=8.3.3
+          VERSION=8.4.0
           wget "https://github.com/Tongsuo-Project/Tongsuo/archive/refs/tags/${VERSION}.tar.gz"
           tar zxf "${VERSION}.tar.gz"
           pushd "Tongsuo-${VERSION}"
-          ./config --prefix=${GITHUB_WORKSPACE}/tongsuo no-shared enable-ntls --release
+          ./config --prefix=${GITHUB_WORKSPACE}/tongsuo no-shared enable-ntls enable-ssl-trace --release
           make -s -j4
           make install_sw
           popd
@@ -62,7 +62,6 @@ jobs:
           autoreconf -fi
           ./configure --enable-warnings --enable-werror --with-openssl=${GITHUB_WORKSPACE}/tongsuo --without-zlib --without-brotli --disable-shared --disable-ldap --disable-ldaps --disable-rtsp --without-librtmp --enable-static
           make -s -j4
-      
       - name: upload artifact
         uses: actions/upload-release-asset@v1
         env:
@@ -70,7 +69,7 @@ jobs:
         with:
           upload_url: ${{ needs.new_release.outputs.upload_url }}
           asset_path: ./curl/src/curl
-          asset_name: curl-${{ runner.os }}
+          asset_name: curl-${{ runner.os }}-${{ runner.arch }}
           asset_content_type: application/octet-stream
 
   build_windows:
@@ -88,7 +87,7 @@ jobs:
       - name: Export env
         shell: bash
         run: |
-          VERSION=8.3.3
+          VERSION=8.4.0
           echo "TONGSUO_VERSION=${VERSION}" >> $GITHUB_ENV
           echo "TONGSUO_HOME=${GITHUB_WORKSPACE}\tongsuo${VERSION}" >> $GITHUB_ENV
       - name: Download Tongsuo source
@@ -103,7 +102,7 @@ jobs:
           pushd "Tongsuo-%TONGSUO_VERSION%"
           mkdir _build
           pushd _build
-          perl ..\Configure no-makedepend no-shared VC-WIN64A --prefix=%TONGSUO_HOME%
+          perl ..\Configure no-makedepend no-shared enable-ntls enable-ssl-trace VC-WIN64A --prefix=%TONGSUO_HOME% --release
           nmake /S
           nmake install_sw
           popd
@@ -116,10 +115,12 @@ jobs:
         working-directory: ./curl
         shell: powershell
         run: |
-          git apply tongsuo.diff
+          git apply --reject tongsuo.patc
           ./buildconf.bat
           cd winbuild
-          nmake /f Makefile.vc mode=static WITH_SSL=static SSL_PATH=${env:TONGSUO_HOME} RTLIBCFG=static
+          nmake /f Makefile.vc MACHINE=x64 mode=static WITH_SSL=static SSL_PATH=${env:TONGSUO_HOME} RTLIBCFG=static ENABLE_NTLS=yes
+          cd ..
+          builds\libcurl-vc-x64-release-static-ssl-static-ipv6-sspi\bin\curl.exe --help tls | findstr tlcp
       - name: upload artifact
         uses: actions/upload-release-asset@v1
         env:
@@ -127,5 +128,5 @@ jobs:
         with:
           upload_url: ${{ needs.new_release.outputs.upload_url }}
           asset_path: .\curl\builds\libcurl-vc-x64-release-static-ssl-static-ipv6-sspi\bin\curl.exe
-          asset_name: curl-${{ runner.os }}.exe
+          asset_name: curl-${{ runner.os }}-${{ runner.arch }}.exe
           asset_content_type: application/octet-stream
