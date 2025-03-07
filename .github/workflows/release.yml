@@ -60,7 +60,7 @@ jobs:
         run: |
           git apply tongsuo.patch
           autoreconf -fi
-          ./configure --enable-warnings --enable-werror --with-openssl=${GITHUB_WORKSPACE}/tongsuo --without-zlib --without-brotli --disable-shared --disable-ldap --disable-ldaps --disable-rtsp --without-librtmp --enable-static
+          ./configure --enable-warnings --enable-werror --with-openssl=${GITHUB_WORKSPACE}/tongsuo --without-zlib --without-brotli --disable-shared --disable-ldap --disable-ldaps --disable-rtsp --without-librtmp --without-libpsl --enable-static
           make -s -j4
       - name: upload artifact
         uses: actions/upload-release-asset@v1
@@ -115,7 +115,7 @@ jobs:
         working-directory: ./curl
         shell: powershell
         run: |
-          git apply --reject tongsuo.patc
+          git apply --reject tongsuo.patch
           ./buildconf.bat
           cd winbuild
           nmake /f Makefile.vc MACHINE=x64 mode=static WITH_SSL=static SSL_PATH=${env:TONGSUO_HOME} RTLIBCFG=static ENABLE_NTLS=yes
